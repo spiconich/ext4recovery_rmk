@@ -62,6 +62,11 @@ public:
         BYTE GroupInode[4];
         BYTE noMatter[56];
     };
+    typedef struct zeroBytes
+    {
+        BYTE hopeZeroOne[4];
+        BYTE hopeZeroTwo[4];
+    };
     void searchingSignaturesShow()
     {
         std::cout << std::endl;
@@ -162,7 +167,7 @@ class BlockMap4096 : public SearchType
     {   //~~~~~~~~~~~~~~~~~~~~~~~~~~~
         const int BLOCKSIZE = 4096;
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~
-
+        const unsigned short BYTESTOREADLOOP = 8;
 
         HANDLE fileHandleRecoveryRead = CreateFileA(
             fullPath.c_str(),
@@ -191,7 +196,7 @@ class BlockMap4096 : public SearchType
             );
             if (fileHandleRecoveryRead != INVALID_HANDLE_VALUE)
             {
-                nOfRecoveredFile++;                
+                nOfRecoveredFile++;
             }
             else
             {
@@ -199,79 +204,79 @@ class BlockMap4096 : public SearchType
             }
             ULONGLONG startOffset = 0;
             BYTE buffer[BLOCKSIZE];
+            BYTE bufferForLoop[BYTESTOREADLOOP];
             DWORD bytesToRead = BLOCKSIZE;
             DWORD bytesRead;
             LARGE_INTEGER sectorOffset;
             sectorOffset.QuadPart = 0;
             sectorOffset.LowPart = BLOCKSIZE;
             unsigned long long currentPosition = 0;
-            currentPosition = SetFilePointer(fileHandleRecoveryRead, foundedSignAddr, NULL, FILE_CURRENT);
-            std::cout << " naw test: " << currentPosition << " = " << foundedSignAddr << std::endl;
+            currentPosition = SetFilePointer(fileHandleRecoveryRead, foundedSignAddr, NULL, FILE_BEGIN);//bil FILE_CURRENT
+            //std::cout << " naw test: " << currentPosition << " = " << foundedSignAddr << std::endl;
             std::cout << currentPosition << std::endl;
             bool ReadError = false;
             bool endOfFile = false; // ne zavisimo ot togo kakim sposobom, no vsegda doljen stat' true inache vse zaciklitsya
-            unsigned int walker = 0; 
-            // at this moment currentPosition in fileHandleRecoveryRead == foundedSignAddr
-            while ((currentPosition != INVALID_SET_FILE_POINTER) && (ReadError == false)&&(endOfFile==false))
-            {
-                bool readResult = ReadFile(fileHandleRecoveryRead, buffer, bytesToRead, &bytesRead, NULL); // readfile ne dvigaet pointer kak i doljno bit' , why?
-                if (readResult && bytesRead == bytesToRead)
+            bool readResult;
+            bool zeroByteFound;
+            unsigned int walker = 0;
+            unsigned long long startPos = 0;
+            unsigned long long eightBytesFromTheEndReaden = 1;//starts from 1 // dlya loop
+            unsigned long long LastRecoveryByteOffset = 0;
+            unsigned long long firstLoopByte = 0;
+            unsigned long long secondLoopByte = 0;         
+            zeroBytes* strucForLoop = reinterpret_cast <zeroBytes*> (bufferForLoop);
+            // at this moment currentPosition in fileHandleRecoveryRead == foundedSignAddr      
+            startPos = foundedSignAddr;
+
+            while ((currentPosition != INVALID_SET_FILE_POINTER) && (endOfFile == false)) // starting from this moment non-stop reading, no pos return
+            {   
+                std::cout << " ----------------------------------------------------" << std::endl;
+                std::cout << "     StartPos: " << startPos << std::endl;
+                //checking last 8 bytes of  the first file block
+                currentPosition = SetFilePointer(fileHandleRecoveryRead, startPos + BLOCKSIZE - (eightBytesFromTheEndReaden * BYTESTOREADLOOP), NULL, FILE_BEGIN); // nado budet kajdiy raz uchitivat' smewenie ot READ
+                std::cout << "PosBeforeRead:" << currentPosition << std::endl;
+                readResult = ReadFile(fileHandleRecoveryRead, bufferForLoop, BYTESTOREADLOOP, &bytesRead, NULL);
+                currentPosition = SetFilePointer(fileHandleRecoveryRead, startPos + BLOCKSIZE - (eightBytesFromTheEndReaden * BYTESTOREADLOOP), NULL, FILE_BEGIN);
+                firstLoopByte = foursBytesToIntx(strucForLoop->hopeZeroOne);
+                secondLoopByte = foursBytesToIntx(strucForLoop->hopeZeroTwo);
+                std::cout <<"f: "<<firstLoopByte << ", s:"<< secondLoopByte << std::endl;
+                if ((firstLoopByte == 0) && (secondLoopByte) == 0)//zero found at the end last 8 bytes
                 {
-                    //first block readen, checking is it last block of file
-                  //  for (walker = 0;walker<=(BLOCKSIZE-9);walker++)
-                    walker = 0;
-                    while ((walker <= (BLOCKSIZE - 9))&& (endOfFile==false))
+                    // prodoljaem idti s nachala v konec
+                    endOfFile = true; 
+                    /* the EOF detected, caz last 8 bytes was not zero...
+                     prodoljaem idti s nachala v konec*/
+                    const short BYTESTOREADSMALLLOOP = 1;
+                    unsigned int oneByteFromTheEndReadenCount = 0;//after four bytes
+                    unsigned short thisByteRez=0;
+                    BYTE bufferForSmallLoop[BYTESTOREADSMALLLOOP];
+                    while ((startPos<=currentPosition)&&(thisByteRez==0))
                     {
-                     if ((buffer[walker]==0)&&(buffer[walker+1] == 0)&&(buffer[walker + 2] == 0) && (buffer[walker + 3] == 0) && (buffer[walker + 4] == 0) && (buffer[walker + 5] == 0) && (buffer[walker + 6] == 0) && (buffer[walker + 7] == 0) && (buffer[walker + 8] == 0))
-                     {
-                         bool endofFile = true;
-                     }
-                     walker++;
+                        oneByteFromTheEndReadenCount++;
+                        currentPosition = SetFilePointer(fileHandleRecoveryRead, startPos + BLOCKSIZE - (eightBytesFromTheEndReaden * BYTESTOREADLOOP)-(oneByteFromTheEndReadenCount * BYTESTOREADSMALLLOOP), NULL, FILE_BEGIN);
+                        readResult = ReadFile(fileHandleRecoveryRead, bufferForSmallLoop, BYTESTOREADSMALLLOOP, &bytesRead, NULL);
+                        currentPosition = SetFilePointer(fileHandleRecoveryRead, startPos + BLOCKSIZE - (eightBytesFromTheEndReaden * BYTESTOREADLOOP)-(oneByteFromTheEndReadenCount * BYTESTOREADSMALLLOOP), NULL, FILE_BEGIN); // nado budet kajdiy raz uchitivat' smewenie ot READ
+                        thisByteRez = (unsigned char)(bufferForSmallLoop[0]);
+                        LastRecoveryByteOffset = currentPosition;
                     }
-
-
-                    if (endOfFile == true)
-                    {
-                        std::cout << " eof detected by eight zero in a row. Offset(dec):  " <<walker << std::endl;
-                        //zapisivaem v file
-                    }
-                    else
-                    {
-                        //std::cout << " eof NOT detected by eight zero in a row. Offset(dec):  " << walker << std::endl;
-                        //std::cout << " current position " << currentPosition << std::endl;
-                        // check po blokovoi karte
-                        endOfFile=!discoveringIfBlockSetUsDeleted(sbOffset, currentPosition+BLOCKSIZE, fullPath);
-                        /*if (endOfFile == false)
-                        {
-                            currentPosition = SetFilePointer(fileHandleRecoveryRead, BLOCKSIZE, NULL, FILE_CURRENT);
-                            testest++;
-                        }*/
-                        //std::cout << "eof detected by next block set us not deleted " << endOfFile<< std::endl;
-                        //endOfFile = true;
-                        //std::cout << "eof detected, the file was at the end of the FS " << std::endl;
-                         //currentPosition = currentPosition - BLOCKSIZE; // the file was at the end of the FS
-                    }
-
-
-
                 }
                 else
-                {
-                    ReadError = true;
+                {                  
+                    startPos = startPos + BLOCKSIZE;
+                    //checking bitmap , zdes' nujno ewe proveryat', probably bug there
+                    endOfFile = !discoveringIfBlockSetUsDeleted(sbOffset, startPos, fullPath);
+                    if (endOfFile == true)
+                    {
+                        LastRecoveryByteOffset = startPos - 1;
+                    }
                 }
-               // std::cout << testest << std::endl;
-                currentPosition = SetFilePointer(fileHandleRecoveryRead, NULL, NULL, FILE_CURRENT);
-                std::cout << currentPosition << std::endl;
             }
-            if (ReadError == true)
-            {
-                std::cout << "Error: reading error occured" << std::endl;
-            }
-            else
-            {
-                std::cout << endOfFile;
-            }
+            std::cout << "LastRecoveryByteOffset: "<< LastRecoveryByteOffset << std::endl;
+            //there are curpos== invalid or eof==true
+            //recovery file there if curpos!=invalid
+
             CloseHandle(fileHandleRecoveryWrite);
+           // std::cout << currentPosition << " " << foundedSignAddr << std::endl;
         }
         else
         {
@@ -389,7 +394,7 @@ class BlockMap4096 : public SearchType
             }
             currentPosition = SetFilePointer(fileHandle, sbOffsetButReal + BLOCKSIZE+BLOCKSIZE, NULL, FILE_CURRENT);//VTOROY BLOCK POSLE SUPERBLOCKA
             
-            std::cout << "XXX:"<< currentPosition << " = " << sbOffset + BLOCKSIZE;
+            //std::cout << "XXX:"<< currentPosition << " = " << sbOffset + BLOCKSIZE;
             bool ReadError = false;
             while (currentPosition != INVALID_SET_FILE_POINTER && (ReadError == false))
             {
