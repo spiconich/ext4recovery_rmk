@@ -224,7 +224,7 @@ class BlockMap4096 : public SearchType
             unsigned long long currentPosition = 0;
             currentPosition = SetFilePointer(fileHandleRecoveryRead, foundedSignAddr, NULL, FILE_BEGIN);//bil FILE_CURRENT
             //std::cout << " naw test: " << currentPosition << " = " << foundedSignAddr << std::endl;
-            std::cout << currentPosition << std::endl;
+            //std::cout << currentPosition << std::endl;
             bool ReadError = false;
             bool endOfFile = false; // ne zavisimo ot togo kakim sposobom, no vsegda doljen stat' true inache vse zaciklitsya
             bool readResult;
@@ -250,7 +250,7 @@ class BlockMap4096 : public SearchType
                 currentPosition = SetFilePointer(fileHandleRecoveryRead, startPos + BLOCKSIZE - (eightBytesFromTheEndReaden * BYTESTOREADLOOP), NULL, FILE_BEGIN);
                 firstLoopByte = foursBytesToIntx(strucForLoop->hopeZeroOne);
                 secondLoopByte = foursBytesToIntx(strucForLoop->hopeZeroTwo);
-                std::cout << "f: " << firstLoopByte << ", s:" << secondLoopByte << std::endl;
+               // std::cout << "f: " << firstLoopByte << ", s:" << secondLoopByte << std::endl;
                 if ((firstLoopByte == 0) && (secondLoopByte) == 0)//zero found at the end last 8 bytes
                 {
                     // prodoljaem idti s nachala v konec
@@ -279,7 +279,7 @@ class BlockMap4096 : public SearchType
                     if (endOfFile == true)
                     {
                         LastRecoveryByteOffset = startPos - 1;
-                        std::cout << " WAS TRUE BECAUSE OF MAP!" << std::endl;
+                       // std::cout << " WAS TRUE BECAUSE OF MAP!" << std::endl;
                     }
                 }
             }
@@ -287,7 +287,7 @@ class BlockMap4096 : public SearchType
             {
                 LastRecoveryByteOffset = startPos - BLOCKSIZE;
             }
-            std::cout << "  Founded offset file format: " << first_jpg_string << std::endl;
+            std::cout << "  Founded offset file format: " << fileFormat << std::endl;
             std::cout << "  File size: " << (LastRecoveryByteOffset-foundedSignAddr) / 1024 << " kbytes." << std::endl;;
             std::cout << "  You wanna to recover it? y/n: ";
             char ynRez;
@@ -310,6 +310,19 @@ class BlockMap4096 : public SearchType
                         std::cout << "  Errors: bytes rewriting troubles..." << std::endl;
                     }
                 }
+                //docx specials there
+                if (WhatsSign == SIGN_MICROSOFT_WORD)
+                {
+                    bufferForRewrite[0]=0;
+                    int i = 0;
+                    while (i < 8)
+                    {
+                        writeFileError = WriteFile(fileHandleRecoveryWrite, (unsigned char*)bufferForRewrite, BYTESFORREWRITE, &bytesRewriten, NULL);
+                        i++;
+                    }
+                    
+                }
+                std::cout << "  Recovered succesful!" << std::endl;
             }          
         
            
@@ -462,7 +475,7 @@ class BlockMap4096 : public SearchType
                 }
                 currentPosition = SetFilePointer(fileHandle, sectorOffset.LowPart - SIGNATURESIZE, NULL, FILE_CURRENT);
             }
-            std::cout << "  File fully read..." << std::endl;
+            std::cout << "  Image fully read..." << std::endl;
         }
         else
         {
