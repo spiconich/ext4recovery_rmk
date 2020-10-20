@@ -9,15 +9,6 @@ unsigned long infoFromOffsets[256];//refr 0..255
 unsigned int nOfRecoveredFile = 1000000;
 bool EightBytes[8];
 
-
-unsigned int foursBytesToIntx(byte* buffer)
-{
-    unsigned int resultingInt = unsigned int((unsigned char)(buffer[3]) << 24 |
-        (unsigned char)(buffer[2]) << 16 |
-        (unsigned char)(buffer[1]) << 8 |
-        (unsigned char)(buffer[0]));
-    return resultingInt;
-}
 void tellIfFound()
 {
     std::cout << std::endl;
@@ -41,21 +32,6 @@ void ByteToEightBits(int one_byte)
     one_byte = one_byte / 2;
     EightBytes[7] = one_byte % 2;
 }
-BYTE signDetect(unsigned int first_byte, unsigned int second_byte, unsigned int third_byte)
-{   //microsoft_word_docx
-    if ((first_byte == microsoft_word::first_4bytes) && (second_byte == microsoft_word::second_4bytes))
-    {
-        return SIGN_MICROSOFT_WORD;
-    }
-    if (first_byte == first_jpg::first_4bytes_f_jpg)
-    {
-        return SIGN_FIRST_JPG;
-    }
-    else
-    {
-        return NULL;
-    }
-}
 
 class SearchType
 {
@@ -77,7 +53,7 @@ public:
         std::cout << "  Going to search signatures in file...  " << std::endl;
     }
     virtual void info() = 0;
-    virtual void recoveringFile(unsigned long long sbOffset, unsigned long long foundedSignAddr, std::string fullPath,BYTE WhatsSign) = 0;
+    virtual void recoveringFile(unsigned long long sbOffset, unsigned long long foundedSignAddr, std::string fullPath, Signatures* sign_class) = 0;//Signatures*?
     virtual void searchigFiles(unsigned long long sbOffset, std::string fullPath) = 0;
     virtual bool discoveringIfBlockSetUsDeleted(unsigned long long sbOffset, unsigned long long foundedSignAddr, std::string fullPath) = 0;
     virtual void blockMapRead(unsigned long long sbOffset, std::string fullPath) = 0;
@@ -167,12 +143,11 @@ class BlockMap4096 : public SearchType
         }
         return whatToReturn;
     }
-    void recoveringFile(unsigned long long sbOffset, unsigned long long foundedSignAddr, std::string fullPath,BYTE WhatsSign)
+    void recoveringFile(unsigned long long sbOffset, unsigned long long foundedSignAddr, std::string fullPath, Signatures* sign_class)
     {   //~~~~~~~~~~~~~~~~~~~~~~~~~~~
         const int BLOCKSIZE = 4096;
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~
         const unsigned short BYTESTOREADLOOP = 8;
-
         HANDLE fileHandleRecoveryRead = CreateFileA(
             fullPath.c_str(),
             GENERIC_READ,
@@ -182,39 +157,14 @@ class BlockMap4096 : public SearchType
             FILE_ATTRIBUTE_NORMAL,
             NULL);
         if (fileHandleRecoveryRead != INVALID_HANDLE_VALUE)
-        {
+        {   
             //Creating file
             std::string createdFileName;
             std::string fileFormat;
-            if (WhatsSign == SIGN_MICROSOFT_WORD)
-            {
-                fileFormat=microsoft_word_string;
-                createdFileName = std::to_string(nOfRecoveredFile) + "." + fileFormat;
-            }
-            if (WhatsSign == SIGN_FIRST_JPG)
-            {   
-                fileFormat = first_jpg_string;
-                createdFileName = std::to_string(nOfRecoveredFile) + "." + fileFormat;
-            }
-            HANDLE fileHandleRecoveryWrite = CreateFileA(
-                createdFileName.c_str(),
-                GENERIC_ALL,
-                FILE_SHARE_READ | FILE_SHARE_WRITE,
-                NULL,
-                CREATE_NEW,
-                FILE_ATTRIBUTE_NORMAL,
-                NULL
-            );
-            if (fileHandleRecoveryRead != INVALID_HANDLE_VALUE)
-            {
-                nOfRecoveredFile++;
-            }
-            else
-            {
-                std::cout << "ERROR WHILE CREATING FILE" << std::endl;
-            }
+            fileFormat = sign_class->give_format();
+            createdFileName = std::to_string(nOfRecoveredFile) + "." + fileFormat;
+            nOfRecoveredFile++;            
             ULONGLONG startOffset = 0;
-            BYTE buffer[BLOCKSIZE];
             BYTE bufferForLoop[BYTESTOREADLOOP];
             DWORD bytesToRead = BLOCKSIZE;
             DWORD bytesRead;
@@ -228,7 +178,6 @@ class BlockMap4096 : public SearchType
             bool ReadError = false;
             bool endOfFile = false; // ne zavisimo ot togo kakim sposobom, no vsegda doljen stat' true inache vse zaciklitsya
             bool readResult;
-            bool zeroByteFound;
             unsigned int walker = 0;
             unsigned long long startPos = 0;
             unsigned long long eightBytesFromTheEndReaden = 1;//starts from 1 // dlya loop
@@ -279,7 +228,7 @@ class BlockMap4096 : public SearchType
                     if (endOfFile == true)
                     {
                         LastRecoveryByteOffset = startPos - 1;
-                       // std::cout << " WAS TRUE BECAUSE OF MAP!" << std::endl;
+                     //std::cout << " WAS TRUE BECAUSE OF MAP!" << std::endl;
                     }
                 }
             }
@@ -288,13 +237,23 @@ class BlockMap4096 : public SearchType
                 LastRecoveryByteOffset = startPos - BLOCKSIZE;
             }
             std::cout << "  Founded offset file format: " << fileFormat << std::endl;
-            std::cout << "  File size: " << (LastRecoveryByteOffset-foundedSignAddr) / 1024 << " kbytes." << std::endl;;
+            std::cout << "  File size: ~" << ((LastRecoveryByteOffset-foundedSignAddr)/1024)+1 << " KB." << std::endl;;
             std::cout << "  You wanna to recover it? y/n: ";
             char ynRez;
             std::cin >> ynRez;
             std::cout << std::endl;
-            if (ynRez == 'y')
+            if ((ynRez == 'y')||(ynRez == 'Y'))
             {
+                HANDLE fileHandleRecoveryWrite = CreateFileA(
+                    createdFileName.c_str(),
+                    GENERIC_ALL,
+                    FILE_SHARE_READ | FILE_SHARE_WRITE,
+                    NULL,
+                    CREATE_NEW,
+                    FILE_ATTRIBUTE_NORMAL,
+                    NULL
+                );
+                bool isError = false;
                 const short BYTESFORREWRITE = 1;
                 DWORD bytesRewriten = 0;
                 BYTE bufferForRewrite[BYTESFORREWRITE];
@@ -306,12 +265,17 @@ class BlockMap4096 : public SearchType
                     currentPosition = SetFilePointer(fileHandleRecoveryRead, NULL, NULL, FILE_CURRENT);
                     writeFileError = WriteFile(fileHandleRecoveryWrite, (unsigned char*)bufferForRewrite, BYTESFORREWRITE, &bytesRewriten, NULL);
                     if ((BYTESFORREWRITE != bytesRewriten) || (writeFileError == false))
-                    {
-                        std::cout << "  Errors: bytes rewriting troubles..." << std::endl;
+                    {   
+                        if (isError==false)
+                        {
+                            std::cout << "  Errors: bytes rewriting troubles... Probably file with the same name is actually exist" << std::endl;
+                            isError = true;
+                        }
+                        
                     }
                 }
                 //docx specials there
-                if (WhatsSign == SIGN_MICROSOFT_WORD)
+                if ((sign_class->give_format()) == "docx")
                 {
                     bufferForRewrite[0]=0;
                     int i = 0;
@@ -323,13 +287,15 @@ class BlockMap4096 : public SearchType
                     
                 }
                 std::cout << "  Recovered succesful!" << std::endl;
+                std::cout << std::endl;
+                std::cout << "  Searching next file..." << std::endl;
+                CloseHandle(fileHandleRecoveryWrite);
             }          
         
            
             //there are curpos== invalid or eof==true
             //recovery file there if curpos!=invalid
 
-            CloseHandle(fileHandleRecoveryWrite);
            // std::cout << currentPosition << " " << foundedSignAddr << std::endl;
         }
         else
@@ -458,14 +424,14 @@ class BlockMap4096 : public SearchType
                     first_bytes_rez = foursBytesToIntx(map->first_bytes);
                     second_bytes_rez = foursBytesToIntx(map->second_bytes);
                     third_bytes_rez = foursBytesToIntx(map->third_bytes);
-                    BYTE SignResult = signDetect(first_bytes_rez, second_bytes_rez, third_bytes_rez);
-                    if (SignResult != NULL)
+                    Signatures* sign_class = desicionWhatSignToCreate(first_bytes_rez, second_bytes_rez, third_bytes_rez);
+                    if (sign_class != NULL)
                     {
                         bool ifNeedToRecover = discoveringIfBlockSetUsDeleted(sbOffset, currentPosition, fullPath);
                         if (ifNeedToRecover == true)
                         {
                             std::cout << "  Signature found at " << currentPosition << " going to recover..." << std::endl;
-                            recoveringFile(sbOffset,currentPosition,fullPath, SignResult);
+                            recoveringFile(sbOffset,currentPosition,fullPath, sign_class);
                         }
                     }
                 }

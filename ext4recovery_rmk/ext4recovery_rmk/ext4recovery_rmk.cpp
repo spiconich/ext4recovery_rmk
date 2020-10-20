@@ -5,7 +5,55 @@
 #include "console_colors.h"
 #include "superblock_offsets.h"
 #include "classes_blocks_addrs.h"
+//signatures output to sqlite
+void sqlShow() 
+{
+    std::cout << "  Creating sqlite3 file with humanreadable signatures" << std::endl;
+    sqlite3* db = 0; // sql object handle
+    char* err = 0;
+    //const char* SQL = "CREATE TABLE IF NOT EXISTS signatures(Format,Bytes_0to3 VARCHAR(20),Bytes_4to7 VARCHAR(20) ,Bytes_8to11 VARCHAR(20));"; 
+    const char* SQL = "DROP TABLE signatures;";
+    if (sqlite3_open("signatures.dblite", &db))
+    {
+        std::cout << "  Error: got some troubles with open/creating DB " << sqlite3_errmsg(db) << std::endl;
+    }
+    // doing sql code
+    else
+    {   //drop table if no exit
+        if (sqlite3_exec(db, SQL, 0, 0, &err))
+        {
+           // std::cout << "  SQL Table drop error: " << err << std::endl;
+            sqlite3_free(err);
+        }
+        SQL = "CREATE TABLE IF NOT EXISTS signatures(Format,Bytes_0to3 VARCHAR(20),Bytes_4to7 VARCHAR(20) ,Bytes_8to11 VARCHAR(20));";
+        //create table
+        if (sqlite3_exec(db, SQL, 0, 0, &err))
+        {
+            std::cout << "  SQL Table create error: " << err << std::endl;
+            sqlite3_free(err);
+        }
 
+        //microsoft_word_0 sql responce
+        SQL = "INSERT INTO signatures (Format, Bytes_0to3, Bytes_4to7,Bytes_8to11) VALUES ('microsoft_word_0','50 4B 03 04','14 00 08 08','NULL')";
+        if (sqlite3_exec(db, SQL, 0, 0, &err))
+        {
+            std::cout << "  SQL microsoft_word_0 sign error: " << err << std::endl;
+            sqlite3_free(err);
+        }
+
+        //picture_jpg_0 sql responce
+        SQL = "INSERT INTO signatures (Format, Bytes_0to3, Bytes_4to7,Bytes_8to11) VALUES ('picture_jpg_0','FF D8 FF E0','NULL','NULL')";
+        if (sqlite3_exec(db, SQL, 0, 0, &err))
+        {
+            std::cout << "  SQL microsoft_word_0 sign error: " << err << std::endl;
+            sqlite3_free(err);
+        }
+
+        
+    }
+    // closing connection
+    sqlite3_close(db);
+}
 std::string UnixTimeToDaily(unsigned int time)
 {
     int year = time / 31436000;
@@ -364,6 +412,7 @@ bool letsTryToFindSuperBlock(std::string fullPath, HANDLE hConsoleHandle, unsign
 
 int main()
 {
+
     HANDLE hConsoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
     std::string pathToDir = ExePath();
     SetConsoleTextAttribute(hConsoleHandle, Green | Black);
@@ -445,7 +494,7 @@ int main()
             fullPath = longLifebackSlashString + longLifebackSlashString + "." + longLifebackSlashString + pathToDir + longLifebackSlashString + fileName;
         }
     }
-
+    sqlShow();
     unsigned int BlockSize = 0;
     unsigned int GroupSize = 0;
     unsigned long long sblockOffsetDec = 0;
