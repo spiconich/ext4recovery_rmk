@@ -4,7 +4,8 @@
 
 #include "console_colors.h"
 #include "superblock_offsets.h"
-#include "classes_blocks_addrs.h"
+#include "classes_blocks_addrs.h"  
+
 //signatures output to sqlite
 void sqlShow() 
 {
@@ -222,8 +223,9 @@ void superBlockShow(superblock_offests strucToShow, unsigned long long offset)
     std::cout << "  ______________________S_U_P_E_R__B_L_O_C_K__F_O_U_N_D______________________ " << std::endl;
     std::cout << "" << std::endl;;
     std::cout << "  Super block offset (dec):  " << offset << std::endl;;
-    std::cout << "  Inode count:               " << foursBytesToInt(strucToShow.nInodeinSystem) << std::endl;
-    std::cout << "  Block count:               " << foursBytesToInt(strucToShow.nBlocksinSystem) << std::endl;
+    std::cout << "  Inodes count:               " << foursBytesToInt(strucToShow.nInodeinSystem) << std::endl;
+    GLOBAL_num_of_groups = foursBytesToInt(strucToShow.nBlocksinSystem);
+    std::cout << "  Blocks count:               " << foursBytesToInt(strucToShow.nBlocksinSystem) << std::endl;
     std::cout << "  Reserved block count:      " << foursBytesToInt(strucToShow.nBlocksReserved) << std::endl;
     std::cout << "  Free blocks:               " << foursBytesToInt(strucToShow.nBlocksFree) << std::endl;
     std::cout << "  Free inodes:               " << foursBytesToInt(strucToShow.nInodesFree) << std::endl;
@@ -237,6 +239,10 @@ void superBlockShow(superblock_offests strucToShow, unsigned long long offset)
         scale++;
     }
     std::cout << "  Block size:                " << blockSize << std::endl;
+    GLOBAL_num_of_groups = GLOBAL_num_of_groups / blockSize;
+    GLOBAL_num_of_groups = GLOBAL_num_of_groups / 8;
+    GLOBAL_num_of_groups++;
+    std::cout << "  Groups count:              " << GLOBAL_num_of_groups << std::endl;
     unsigned int FragSizeMult = foursBytesToInt(strucToShow.FragmentSize);
     int FragSize = 1024;
     scale = 0;

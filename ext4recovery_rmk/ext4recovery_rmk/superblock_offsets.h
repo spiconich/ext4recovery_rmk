@@ -35,8 +35,8 @@ struct superblock_offests
     BYTE UnCompatibilityFlag[4];//96-99
     BYTE FlagsOnlyForRead[4];//100-103
     BYTE FSidentificator[16];//104-119
-    BYTE VolumeIdentificator[16];//120-135 34
-    BYTE LastMountPath[64];//136-199 50
+    BYTE VolumeIdentificator[12];//120-135 34
+    BYTE LastMountPath[68];//136-199 50
     BYTE AlghoritmBitmap[4];//200-203 51
     BYTE nBlocksPrealocatedForFile;//204-204 
     BYTE nBlocksPrealocatedForDir;//205-205
