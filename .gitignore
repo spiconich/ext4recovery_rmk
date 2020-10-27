@@ -56,3 +56,6 @@ ext4recovery_rmk/Debug/signatures.dblite
 ext4recovery_rmk/Debug/Sqliteman-1.2.2/AUTHORS
 ext4recovery_rmk/Debug/Sqliteman-1.2.2/COPYING
 ext4recovery_rmk/Debug/Sqliteman-1.2.2/README
+*.dblite
+*.sql
+ext4recovery_rmk/Debug/Sqliteman-1.2.2/1
