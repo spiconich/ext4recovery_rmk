@@ -3,11 +3,13 @@
 #include <Windows.h>
 #include <string>
 #include "files_signatures.h"
+#include <vector>
 
-unsigned int blocksaddr[256];//refr 0..255 ->> áûëî [255] 0..254, îøèáñÿ...
+//unsigned int blocksaddr[256];//refr 0..255 ->> áûëî [255] 0..254, îøèáñÿ...
 //unsigned long infoFromOffsets[256];//refr 0..255
-unsigned int nOfRecoveredFile = 1000000;
+std::vector<unsigned int> blocksaddr(0);//(GLOBAL_num_of_groups);
 unsigned long long GLOBAL_num_of_groups = 0;
+unsigned int nOfRecoveredFile = 1000000;
 bool EightBytes[8];
 
 void tellIfFound()
@@ -67,11 +69,12 @@ class BlockMap1024 : public SearchType
     void info()
     {
         std::cout << std::endl;
-        std::cout << "  Going to look for block map, using 4kb block size us detected" << std::endl;
+        std::cout << "  Going to look for block map, using 1kb block size us detected" << std::endl;
+        blocksaddr.resize(blocksaddr.size() + GLOBAL_num_of_groups);
     }
     bool discoveringIfBlockSetUsDeleted(unsigned long long sbOffset, unsigned long long foundedSignAddr, std::string fullPath)
     {   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        const unsigned char MAX_GROUP_NUM = 255;
+        const unsigned char MAX_GROUP_NUM = GLOBAL_num_of_groups-1;
         const int BLOCKSIZEX = 1024;
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         bool whatToReturn = false;
@@ -342,13 +345,13 @@ class BlockMap1024 : public SearchType
                 int obv_size = 0;
                 bool readResult;
                 bool noFail = true;
-                while ((obv_size < 256) && (noFail == true))
+                while ((obv_size < GLOBAL_num_of_groups) && (noFail == true))
                 {
                     readResult = ReadFile(fileHandle, buffer, bytesToRead, &bytesRead, NULL);
                     if (readResult && bytesRead == bytesToRead)
                     {
                         blocksaddr[obv_size] = foursBytesToIntx(map->GroupBlock);//zapolnyaem massiv s nomerami blokov dlya vosstanovleniya
-                        std::cout << "group num: " << obv_size << " " << blocksaddr[obv_size] << std::endl;
+                        //std::cout << "group num: " << obv_size << " " << blocksaddr[obv_size] << std::endl;
                         obv_size++;
                     }
                     else
@@ -459,10 +462,11 @@ class BlockMap4096 : public SearchType
     {
         std::cout << std::endl;
         std::cout << "  Going to look for block map, using 4kb block size us detected" << std::endl;
+        blocksaddr.resize(blocksaddr.size() + GLOBAL_num_of_groups);
     }
     bool discoveringIfBlockSetUsDeleted(unsigned long long sbOffset, unsigned long long foundedSignAddr, std::string fullPath)
     {   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
-        const unsigned char MAX_GROUP_NUM = 255;
+        const unsigned char MAX_GROUP_NUM = GLOBAL_num_of_groups - 1;
         const int BLOCKSIZEX = 4096;
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         bool whatToReturn = false;
@@ -733,13 +737,13 @@ class BlockMap4096 : public SearchType
                 int obv_size = 0;
                 bool readResult;
                 bool noFail = true;
-                while ((obv_size < 256) && (noFail==true))
+                while ((obv_size < GLOBAL_num_of_groups) && (noFail==true))
                 {
                     readResult = ReadFile(fileHandle, buffer, bytesToRead, &bytesRead, NULL);
                     if (readResult && bytesRead == bytesToRead)
                     {
                         blocksaddr[obv_size] = foursBytesToIntx(map->GroupBlock);//zapolnyaem massiv s nomerami blokov dlya vosstanovleniya
-                        //std::cout << "group num: " << obv_size << " " << blocksaddr[obv_size] << std::endl;
+                        std::cout << "group num: " << obv_size << " " << blocksaddr[obv_size] << std::endl;
                         obv_size++;
                     }
                     else

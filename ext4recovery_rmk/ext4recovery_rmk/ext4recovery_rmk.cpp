@@ -223,9 +223,9 @@ void superBlockShow(superblock_offests strucToShow, unsigned long long offset)
     std::cout << "  ______________________S_U_P_E_R__B_L_O_C_K__F_O_U_N_D______________________ " << std::endl;
     std::cout << "" << std::endl;;
     std::cout << "  Super block offset (dec):  " << offset << std::endl;;
-    std::cout << "  Inodes count:               " << foursBytesToInt(strucToShow.nInodeinSystem) << std::endl;
+    std::cout << "  Inodes count:              " << foursBytesToInt(strucToShow.nInodeinSystem) << std::endl;
     GLOBAL_num_of_groups = foursBytesToInt(strucToShow.nBlocksinSystem);
-    std::cout << "  Blocks count:               " << foursBytesToInt(strucToShow.nBlocksinSystem) << std::endl;
+    std::cout << "  Blocks count:              " << foursBytesToInt(strucToShow.nBlocksinSystem) << std::endl;
     std::cout << "  Reserved block count:      " << foursBytesToInt(strucToShow.nBlocksReserved) << std::endl;
     std::cout << "  Free blocks:               " << foursBytesToInt(strucToShow.nBlocksFree) << std::endl;
     std::cout << "  Free inodes:               " << foursBytesToInt(strucToShow.nInodesFree) << std::endl;
