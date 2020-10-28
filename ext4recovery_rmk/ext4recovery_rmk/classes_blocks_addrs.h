@@ -79,7 +79,7 @@ class BlockMap1024 : public SearchType
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         bool whatToReturn = false;
         unsigned long long sbOffsetButReal = 0;
-        while ((sbOffsetButReal + BLOCKSIZEX) < sbOffset)
+        while ((sbOffsetButReal + BLOCKSIZEX) <= sbOffset)
         {
             sbOffsetButReal = sbOffsetButReal + BLOCKSIZEX; // ukazivaet na nachalo bloka a ne na nachalo superbloka kak ran'we.
         }
@@ -133,13 +133,11 @@ class BlockMap1024 : public SearchType
                         {
                             whatToReturn = true;
                         }
-
                     }
                 }
             }
 
             CloseHandle(fileHandlex);
-
         }
         else
         {
@@ -203,7 +201,7 @@ class BlockMap1024 : public SearchType
                 currentPosition = SetFilePointer(fileHandleRecoveryRead, startPos + BLOCKSIZE - (eightBytesFromTheEndReaden * BYTESTOREADLOOP), NULL, FILE_BEGIN);
                 firstLoopByte = foursBytesToIntx(strucForLoop->hopeZeroOne);
                 secondLoopByte = foursBytesToIntx(strucForLoop->hopeZeroTwo);
-                 std::cout << "f: " << firstLoopByte << ", s:" << secondLoopByte << std::endl;
+                 //std::cout << "f: " << firstLoopByte << ", s:" << secondLoopByte << std::endl;
                 if ((firstLoopByte == 0) && (secondLoopByte) == 0)//zero found at the end last 8 bytes
                 {
                     // prodoljaem idti s nachala v konec
@@ -333,11 +331,11 @@ class BlockMap1024 : public SearchType
             Block_map_offsets* map = reinterpret_cast <Block_map_offsets*> (buffer);
             unsigned long long currentPosition = 0;
             unsigned long long sbOffsetButReal = 0;
-            while ((sbOffsetButReal + BLOCKSIZE) < sbOffset) ///????????????????
+            while ((sbOffsetButReal + BLOCKSIZE) <= sbOffset) ///????????????????
             {
                 sbOffsetButReal = sbOffsetButReal + BLOCKSIZE; // ukazivaet na nachalo bloka a ne na nachalo superbloka kak ran'we.
             }
-            currentPosition = SetFilePointer(fileHandle, sbOffsetButReal + BLOCKSIZE + BLOCKSIZE, NULL, FILE_BEGIN);//NEXT BLOCK AFTER SUPERBLOCK
+            currentPosition = SetFilePointer(fileHandle, sbOffsetButReal + BLOCKSIZE, NULL, FILE_BEGIN);//NEXT BLOCK AFTER SUPERBLOCK
 
             //std::cout << "test sb: " << currentPosition << " = " << sbOffsetButReal << std::endl;
             if (currentPosition != INVALID_SET_FILE_POINTER)
@@ -471,7 +469,7 @@ class BlockMap4096 : public SearchType
         //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
         bool whatToReturn = false;
         unsigned long long sbOffsetButReal = 0;
-        while ((sbOffsetButReal + BLOCKSIZEX) < sbOffset)
+        while ((sbOffsetButReal + BLOCKSIZEX) <= sbOffset)
         {
             sbOffsetButReal = sbOffsetButReal + BLOCKSIZEX; // ukazivaet na nachalo bloka a ne na nachalo superbloka kak ran'we.
         }
@@ -725,13 +723,13 @@ class BlockMap4096 : public SearchType
             Block_map_offsets* map = reinterpret_cast <Block_map_offsets*> (buffer);
             unsigned long long currentPosition = 0;
             unsigned long long sbOffsetButReal = 0;
-            while ((sbOffsetButReal + BLOCKSIZE) < sbOffset)
+            while ((sbOffsetButReal + BLOCKSIZE) <= sbOffset)
             {
                 sbOffsetButReal = sbOffsetButReal + BLOCKSIZE; // ukazivaet na nachalo bloka a ne na nachalo superbloka kak ran'we.
             }
-            currentPosition = SetFilePointer(fileHandle, sbOffsetButReal + BLOCKSIZE + BLOCKSIZE, NULL, FILE_BEGIN);//NEXT BLOCK AFTER SUPERBLOCK
-            
-            //std::cout << "test sb: " << currentPosition << " = " << sbOffsetButReal << std::endl;
+            currentPosition = SetFilePointer(fileHandle, sbOffsetButReal + BLOCKSIZE , NULL, FILE_BEGIN);//NEXT BLOCK AFTER SUPERBLOCK
+           
+           // std::cout << "sbOffsetButReal + BLOCKSIZE + BLOCKSIZE: " << currentPosition << std::endl;
             if (currentPosition != INVALID_SET_FILE_POINTER)
             {
                 int obv_size = 0;
@@ -743,7 +741,7 @@ class BlockMap4096 : public SearchType
                     if (readResult && bytesRead == bytesToRead)
                     {
                         blocksaddr[obv_size] = foursBytesToIntx(map->GroupBlock);//zapolnyaem massiv s nomerami blokov dlya vosstanovleniya
-                        std::cout << "group num: " << obv_size << " " << blocksaddr[obv_size] << std::endl;
+                        //std::cout << "group num: " << obv_size << " " << blocksaddr[obv_size] << std::endl;
                         obv_size++;
                     }
                     else

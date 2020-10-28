@@ -57,13 +57,14 @@ void sqlShow()
 }
 std::string UnixTimeToDaily(unsigned int time)
 {
-    int year = time / 31436000;
+    //std::cout << "UNIX TIME:" << time << std::endl;
+    int year = time / 31536000;
     year = year + 1970;
     int extraDays = (year - 1969) / 4;
     int days = time / 86400;
     int daysForLaterCalc = days;
     days = days - extraDays;
-    int daysThisYear = days % 365;
+    int daysThisYear = (days % 365)+1;
     int isCurYearLeapBonusDay = 0;
     if ((year % 4) == 0)
     {
@@ -418,7 +419,6 @@ bool letsTryToFindSuperBlock(std::string fullPath, HANDLE hConsoleHandle, unsign
 
 int main()
 {
-
     HANDLE hConsoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
     std::string pathToDir = ExePath();
     SetConsoleTextAttribute(hConsoleHandle, Green | Black);
