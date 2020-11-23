@@ -312,7 +312,6 @@ bool letsTryToFindSuperBlock(std::string fullPath, HANDLE hConsoleHandle, unsign
     SetConsoleTextAttribute(hConsoleHandle, White | Black);
     std::cout << "..." << std::endl;;
 
-    //Ext4 — от 1Кб до 16Кб размер блока
     bool pointerRez = false;
     bool readRez = false;
     bool isItSuperBlock = false;
@@ -418,7 +417,7 @@ bool letsTryToFindSuperBlock(std::string fullPath, HANDLE hConsoleHandle, unsign
 
 
 int main()
-{
+{   
     HANDLE hConsoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
     std::string pathToDir = ExePath();
     SetConsoleTextAttribute(hConsoleHandle, Green | Black);
