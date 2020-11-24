@@ -1,11 +1,10 @@
 ﻿#include <iostream>
 #include <Windows.h>
 #include <string>
-
 #include "console_colors.h"
 #include "superblock_offsets.h"
 #include "classes_blocks_addrs.h"  
-
+#pragma warning(disable : 4996)
 //signatures output to sqlite
 void sqlShow() 
 {
@@ -26,31 +25,89 @@ void sqlShow()
            // std::cout << "  SQL Table drop error: " << err << std::endl;
             sqlite3_free(err);
         }
-        SQL = "CREATE TABLE IF NOT EXISTS signatures(Format,Bytes_0to3 VARCHAR(20),Bytes_4to7 VARCHAR(20) ,Bytes_8to11 VARCHAR(20));";
+        SQL = "CREATE TABLE IF NOT EXISTS signatures(Extension VARCHAR(20), action_type VARCHAR(20),bytes0to3 VARCHAR(20), bytes4to7 VARCHAR(20),bytes8to11 VARCHAR(20),bytes0to5 VARCHAR(20));";
         //create table
         if (sqlite3_exec(db, SQL, 0, 0, &err))
         {
             std::cout << "  SQL Table create error: " << err << std::endl;
             sqlite3_free(err);
         }
-
-        //microsoft_word_0 sql responce
-        SQL = "INSERT INTO signatures (Format, Bytes_0to3, Bytes_4to7,Bytes_8to11) VALUES ('microsoft_word_0','50 4B 03 04','14 00 08 08','NULL')";
-        if (sqlite3_exec(db, SQL, 0, 0, &err))
+        std::string SQL_string;
+        unsigned int sql_counter = 0;
+        std::string temporary_data;
+        std::string long_life_temp;
+        ULONGLONG test;
+        for (sql_counter = 0; sql_counter < signatures_count; sql_counter++)
         {
-            std::cout << "  SQL microsoft_word_0 sign error: " << err << std::endl;
-            sqlite3_free(err);
-        }
+            
+            SQL_string = "INSERT INTO signatures(bytes0to5, Extension) VALUES ('";
+            test = signature_arr[sql_counter].get_six_bytes();
+            temporary_data = std::to_string(test);
+            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NULL"; };
+            SQL_string = SQL_string + temporary_data + "','";
+            temporary_data = signature_arr[sql_counter].get_file_format();
+            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NULL"; };
+            long_life_temp = temporary_data;
+            SQL_string = SQL_string + temporary_data + "');";
+            SQL = SQL_string.c_str();
+            if (sqlite3_exec(db, SQL, 0, 0, &err))
+            {
+                std::cout << "  SQL error: " << err << std::endl;
+                sqlite3_free(err);
+            }
 
-        //picture_jpg_0 sql responce
-        SQL = "INSERT INTO signatures (Format, Bytes_0to3, Bytes_4to7,Bytes_8to11) VALUES ('picture_jpg_0','FF D8 FF E0','NULL','NULL')";
-        if (sqlite3_exec(db, SQL, 0, 0, &err))
-        {
-            std::cout << "  SQL microsoft_word_0 sign error: " << err << std::endl;
-            sqlite3_free(err);
-        }
+          
+            SQL_string = "UPDATE signatures SET action_type='";
+            test = signature_arr[sql_counter].get_action_type();
+            switch (test)
+            {
+            case 1: 
+                temporary_data = "Using first 4 bytes";
+                break;
+            case 2: 
+                temporary_data = "Using first 8 bytes";
+                break; 
+            case 3:
+                temporary_data = "Using first 12 bytes";
+                break;
+            case 4:
+                temporary_data = "Using first 6 bytes";
+                break;
+            default:
+                temporary_data = std::to_string(test);
+                break;
+            }          
+            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length()==0) { temporary_data = "NULL"; };
+            SQL_string = SQL_string + temporary_data + "',bytes0to3='";
 
-        
+            test = signature_arr[sql_counter].get_four_bytes();
+            temporary_data = std::to_string(test);
+            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NULL"; };
+            SQL_string = SQL_string + temporary_data + "' WHERE Extension='"+ long_life_temp+"';";
+
+            SQL = SQL_string.c_str();
+            if (sqlite3_exec(db, SQL, 0, 0, &err))
+            {
+                std::cout << "  SQL error: " << err << std::endl;
+                sqlite3_free(err);
+            }
+            
+            SQL_string = "UPDATE signatures SET bytes4to7='";
+            test = signature_arr[sql_counter].get_eight_bytes();
+            temporary_data = std::to_string(test);
+            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NULL"; };
+            SQL_string = SQL_string + temporary_data + "',bytes8to11='";
+            test = signature_arr[sql_counter].get_twelwe_bytes();
+            temporary_data = std::to_string(test);
+            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NULL"; };
+            SQL_string = SQL_string + temporary_data + "' WHERE Extension='" + long_life_temp + "';";
+            SQL = SQL_string.c_str();
+            if (sqlite3_exec(db, SQL, 0, 0, &err))
+            {
+                std::cout << "  SQL error: " << err << std::endl;
+                sqlite3_free(err);
+            }         
+        }            
     }
     // closing connection
     sqlite3_close(db);
