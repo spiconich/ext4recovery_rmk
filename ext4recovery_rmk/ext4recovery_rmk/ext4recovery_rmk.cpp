@@ -4,8 +4,8 @@
 #include "console_colors.h"
 #include "superblock_offsets.h"
 #include "classes_blocks_addrs.h"  
-#pragma warning(disable : 4996)
-//signatures output to sqlite
+
+
 void sqlShow() 
 {
     std::cout << "  Creating sqlite3 file with humanreadable signatures" << std::endl;
@@ -43,10 +43,10 @@ void sqlShow()
             SQL_string = "INSERT INTO signatures(bytes0to5, Extension) VALUES ('";
             test = signature_arr[sql_counter].get_six_bytes();
             temporary_data = std::to_string(test);
-            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NULL"; };
+            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NOT USED"; };
             SQL_string = SQL_string + temporary_data + "','";
             temporary_data = signature_arr[sql_counter].get_file_format();
-            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NULL"; };
+            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NOT USED"; };
             long_life_temp = temporary_data;
             SQL_string = SQL_string + temporary_data + "');";
             SQL = SQL_string.c_str();
@@ -77,12 +77,12 @@ void sqlShow()
                 temporary_data = std::to_string(test);
                 break;
             }          
-            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length()==0) { temporary_data = "NULL"; };
+            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length()==0) { temporary_data = "NOT USED"; };
             SQL_string = SQL_string + temporary_data + "',bytes0to3='";
 
             test = signature_arr[sql_counter].get_four_bytes();
             temporary_data = std::to_string(test);
-            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NULL"; };
+            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NOT USED"; };
             SQL_string = SQL_string + temporary_data + "' WHERE Extension='"+ long_life_temp+"';";
 
             SQL = SQL_string.c_str();
@@ -95,11 +95,11 @@ void sqlShow()
             SQL_string = "UPDATE signatures SET bytes4to7='";
             test = signature_arr[sql_counter].get_eight_bytes();
             temporary_data = std::to_string(test);
-            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NULL"; };
+            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NOT USED"; };
             SQL_string = SQL_string + temporary_data + "',bytes8to11='";
             test = signature_arr[sql_counter].get_twelwe_bytes();
             temporary_data = std::to_string(test);
-            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NULL"; };
+            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NOT USED"; };
             SQL_string = SQL_string + temporary_data + "' WHERE Extension='" + long_life_temp + "';";
             SQL = SQL_string.c_str();
             if (sqlite3_exec(db, SQL, 0, 0, &err))
@@ -579,6 +579,7 @@ int main()
         else
         {
             block_map->info();
+            block_map->setRecoveryConfiguration();
             block_map->blockMapRead(sblockOffsetDec, fullPath);
             block_map->searchingSignaturesShow();
             block_map->searchigFiles(sblockOffsetDec, fullPath);

@@ -5,12 +5,15 @@
 #include <vector>
 
 #include "signatures_classes.h"
+ULONGLONG GLOBAL_RECOVERY_MIN_SIZE = 0;
+ULONGLONG GLOBAL_RECOVERY_MAX_SIZE = 0;
 std::vector<unsigned long long> blocksaddr(0);//(GLOBAL_num_of_groups);
 unsigned long long GLOBAL_num_of_groups = 0;
 unsigned int nOfRecoveredFile = 1000000;
 unsigned int BLOCKSIZEX;
 unsigned int BLOCKSIZE;
 bool EightBytes[8];
+
 
 void tellIfFound()
 {
@@ -58,6 +61,7 @@ public:
         std::cout << "  Going to search signatures in file...  " << std::endl;
     }
     virtual void info() = 0;
+    virtual void setRecoveryConfiguration() = 0;
     virtual void recoveringFile(unsigned long long sbOffset, unsigned long long foundedSignAddr, std::string fullPath, std::string fileExtension) = 0;//Signatures*?
     virtual void searchigFiles(unsigned long long sbOffset, std::string fullPath) = 0;
     virtual bool discoveringIfBlockSetUsDeleted(unsigned long long sbOffset, unsigned long long foundedSignAddr, std::string fullPath) = 0;
@@ -73,6 +77,19 @@ class BlockMap : public SearchType
         std::cout << "  Going to look for block map, using "<<BLOCKSIZE<<" block size us detected" << std::endl;
         blocksaddr.resize(blocksaddr.size() + GLOBAL_num_of_groups);
 
+    }
+    void setRecoveryConfiguration()
+    {
+        std::cout << "  Do u want to configure search preset y/n (recommended) : ";
+        char temp;
+        std::cin >> temp;
+        if ((temp == 'y') || (temp == 'Y'))
+        {
+            std::cout << "  Set minimal file size to restore in KB  : ";
+            std::cin >> GLOBAL_RECOVERY_MIN_SIZE;
+            std::cout << "  Set maximum file size to restore in KB  : ";
+            std::cin >> GLOBAL_RECOVERY_MAX_SIZE;
+        }
     }
     bool discoveringIfBlockSetUsDeleted(unsigned long long sbOffset, unsigned long long foundedSignAddr, std::string fullPath)
     {   //~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
@@ -237,17 +254,46 @@ class BlockMap : public SearchType
                     }
                 }
             }
-            if (startPos == INVALID_SET_FILE_POINTER) // ne uveren, obrabotka konca faila... nujno uznat' za etu temu
+            if (startPos == INVALID_SET_FILE_POINTER) 
             {
                 LastRecoveryByteOffset = startPos - BLOCKSIZE;
             }
             std::cout << "  Founded offset file format: " << fileFormat << std::endl;
-            std::cout << "  File size: ~" << ((LastRecoveryByteOffset-foundedSignAddr)/1024)+1 << " KB." << std::endl;;
-            std::cout << "  You wanna to recover it? y/n: ";
-            char ynRez;
-            std::cin >> ynRez;
-            std::cout << std::endl;
-            if ((ynRez == 'y')||(ynRez == 'Y'))
+            ULONGLONG fileSize = ((LastRecoveryByteOffset - foundedSignAddr) / 1024) + 1;
+            std::cout << "  File size: ~" << fileSize << " KB." << std::endl;
+            bool needToRecover = false;
+            if (GLOBAL_RECOVERY_MIN_SIZE == 0 && GLOBAL_RECOVERY_MAX_SIZE == 0)
+            {
+                std::cout << "  You wanna to recover it? y/n: ";
+                char ynRez;
+                std::cin >> ynRez;
+                std::cout << std::endl;
+                if ((ynRez == 'y') || (ynRez == 'Y')) 
+                { 
+                    needToRecover = true; 
+                }
+            }
+            else
+            {
+                if ((fileSize >= GLOBAL_RECOVERY_MIN_SIZE) && (fileSize <= GLOBAL_RECOVERY_MAX_SIZE))
+                {
+                    needToRecover = true;
+                }
+                else
+                {
+                   
+                    if (fileSize < GLOBAL_RECOVERY_MIN_SIZE)
+                    {
+                        std::cout << "  File was auto skipped because it was too small." << std::endl << std::endl;
+                    }
+                    else
+                    {
+                        std::cout << "  File was auto skipped because it was too big." << std::endl << std::endl;
+
+                    }
+                }
+            }                       
+            if (needToRecover == true)
             {
                 HANDLE fileHandleRecoveryWrite = CreateFileA(
                     createdFileName.c_str(),
@@ -295,7 +341,11 @@ class BlockMap : public SearchType
                 std::cout << std::endl;
                 std::cout << "  Searching next file..." << std::endl;
                 CloseHandle(fileHandleRecoveryWrite);
-            }          
+            }
+            else
+            {
+                std::cout << "-" << std::endl;
+            }
         }
         else
         {
@@ -436,7 +486,7 @@ class BlockMap : public SearchType
                     ReadError = true;
                 }
                 currentPosition = SetFilePointer(fileHandle, sectorOffset.LowPart - SIGNATURESIZE, NULL, FILE_CURRENT);
-               // std::cout << currentPosition << " " << std::endl;
+              // std::cout << currentPosition << " " << std::endl;
             }
             std::cout << "  Image fully read..." << std::endl;
         }
