@@ -7,6 +7,10 @@
 #include "signatures_classes.h"
 ULONGLONG GLOBAL_RECOVERY_MIN_SIZE = 0;
 ULONGLONG GLOBAL_RECOVERY_MAX_SIZE = 0;
+
+
+
+bool userEnabled = false;
 std::vector<unsigned long long> blocksaddr(0);//(GLOBAL_num_of_groups);
 unsigned long long GLOBAL_num_of_groups = 0;
 unsigned int nOfRecoveredFile = 1000000;
@@ -81,9 +85,9 @@ class BlockMap : public SearchType
     void setRecoveryConfiguration()
     {
         std::cout << "  Do u want to configure search preset y/n (recommended) : ";
-        char temp;
+        std::string temp;
         std::cin >> temp;
-        if ((temp == 'y') || (temp == 'Y'))
+        if ((temp == "y") || (temp == "Y"))
         {
             std::cout << "  Set minimal file size to restore in KB  : ";
             std::cin >> GLOBAL_RECOVERY_MIN_SIZE;
@@ -341,11 +345,7 @@ class BlockMap : public SearchType
                 std::cout << std::endl;
                 std::cout << "  Searching next file..." << std::endl;
                 CloseHandle(fileHandleRecoveryWrite);
-            }
-            else
-            {
-                std::cout << "-" << std::endl;
-            }
+            }            
         }
         else
         {
