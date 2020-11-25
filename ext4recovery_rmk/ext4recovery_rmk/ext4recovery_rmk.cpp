@@ -3,10 +3,107 @@
 #include <string>
 #include "console_colors.h"
 #include "superblock_offsets.h"
-#include "classes_blocks_addrs.h"  
+#include "classes_blocks_addrs.h" 
 
+void addingUserSign()
+{
+    unsigned char _action_type = 0;
+    unsigned int _four_bytes = 0;
+    ULONGLONG _six_bytes = 0;
+    unsigned int _eight_bytes = 0;
+    unsigned int _twelwe_bytes = 0;
+    std::string _file_format = "NOT USED";
+    bool _restore_required = false;
+    std::cout << "  You wanna to add optional signature? y/n: ";
+    std::string ynRez;
+    std::cin >> ynRez;
+    std::cout << std::endl;
+    bool isErrorExist = true;
+    if ((ynRez == "y") || (ynRez == "Y"))
+    {
+        std::cout << "  Choose your signature action type: " << std::endl;
+        std::cout << "  1- using bytes 0-3, 2- using bytes 0-7, 3- using bytes 0-11, 4-using bytes 0-5: ";
+        std::cin >> _action_type;
 
-void sqlShow() 
+        switch (_action_type)
+        {
+        case '1':
+            _action_type = 1;
+            isErrorExist = false;
+            break;
+        case '2':
+            _action_type = 2;
+            isErrorExist = false;
+            break;
+        case '3':
+            _action_type = 3;
+            isErrorExist = false;
+            break;
+        case '4':
+            _action_type = 4;
+            isErrorExist = false;
+            break;
+        default:
+            isErrorExist = true;
+        }
+        if (!isErrorExist)
+        {
+            if (_action_type == 1)
+            {
+                std::cout << "  Enter bytes 0-3 (demical, BE): " << std::endl;
+                std::cin >> _four_bytes;
+                std::cout << "  Enter Extension: " << std::endl;
+                std::cin >> _file_format;
+            }
+            else
+            {
+                if (_action_type == 2)
+                {
+                    std::cout << "  Enter bytes 0-3 (demical, BE): " << std::endl;
+                    std::cin >> _four_bytes;
+                    std::cout << "  Enter bytes 4-7 (demical, BE): " << std::endl;
+                    std::cin >> _eight_bytes;
+                    std::cout << "  Enter Extension: " << std::endl;
+                    std::cin >> _file_format;
+                }
+                else
+                {
+                    if (_action_type == 3)
+                    {
+                        std::cout << "  Enter bytes 0-3 (demical, BE): " << std::endl;
+                        std::cin >> _four_bytes;
+                        std::cout << "  Enter bytes 4-7 (demical, BE): " << std::endl;
+                        std::cin >> _eight_bytes;
+                        std::cout << "  Enter bytes 8-11 (demical, BE): " << std::endl;
+                        std::cin >> _twelwe_bytes;
+                        std::cout << "  Enter Extension: " << std::endl;
+                        std::cin >> _file_format;
+                    }
+                    else
+                    {
+                        if (_action_type == 4)
+                        {
+                            std::cout << "  Enter bytes 0-5 (demical, BE): " << std::endl;
+                            std::cin >> _six_bytes;
+                            std::cout << "  Enter Extension: " << std::endl;
+                            std::cin >> _file_format;
+                        }
+                    }
+                }
+            }
+        }
+        else
+        {
+            std::cout << "  Incorrect action type, scipping..." << std::endl;
+        }
+    }
+    _restore_required = !isErrorExist;
+    if (_restore_required)
+    {
+        signature_arr[signatures_count - 1] = Signature(_action_type, _four_bytes, _six_bytes, _eight_bytes, _twelwe_bytes, _file_format, _restore_required);
+    }
+}
+void sqlShow()
 {
     std::cout << "  Creating sqlite3 file with humanreadable signatures" << std::endl;
     sqlite3* db = 0; // sql object handle
@@ -22,7 +119,7 @@ void sqlShow()
     {   //drop table if no exit
         if (sqlite3_exec(db, SQL, 0, 0, &err))
         {
-           // std::cout << "  SQL Table drop error: " << err << std::endl;
+            // std::cout << "  SQL Table drop error: " << err << std::endl;
             sqlite3_free(err);
         }
         SQL = "CREATE TABLE IF NOT EXISTS signatures(Extension VARCHAR(20), action_type VARCHAR(20),bytes0to3 VARCHAR(20), bytes4to7 VARCHAR(20),bytes8to11 VARCHAR(20),bytes0to5 VARCHAR(20));";
@@ -39,7 +136,7 @@ void sqlShow()
         ULONGLONG test;
         for (sql_counter = 0; sql_counter < signatures_count; sql_counter++)
         {
-            
+
             SQL_string = "INSERT INTO signatures(bytes0to5, Extension) VALUES ('";
             test = signature_arr[sql_counter].get_six_bytes();
             temporary_data = std::to_string(test);
@@ -56,17 +153,17 @@ void sqlShow()
                 sqlite3_free(err);
             }
 
-          
+
             SQL_string = "UPDATE signatures SET action_type='";
             test = signature_arr[sql_counter].get_action_type();
             switch (test)
             {
-            case 1: 
+            case 1:
                 temporary_data = "Using first 4 bytes";
                 break;
-            case 2: 
+            case 2:
                 temporary_data = "Using first 8 bytes";
-                break; 
+                break;
             case 3:
                 temporary_data = "Using first 12 bytes";
                 break;
@@ -76,14 +173,14 @@ void sqlShow()
             default:
                 temporary_data = std::to_string(test);
                 break;
-            }          
-            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length()==0) { temporary_data = "NOT USED"; };
+            }
+            if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NOT USED"; };
             SQL_string = SQL_string + temporary_data + "',bytes0to3='";
 
             test = signature_arr[sql_counter].get_four_bytes();
             temporary_data = std::to_string(test);
             if (temporary_data == "0" || temporary_data == " " || temporary_data == "" || temporary_data.length() == 0) { temporary_data = "NOT USED"; };
-            SQL_string = SQL_string + temporary_data + "' WHERE Extension='"+ long_life_temp+"';";
+            SQL_string = SQL_string + temporary_data + "' WHERE Extension='" + long_life_temp + "';";
 
             SQL = SQL_string.c_str();
             if (sqlite3_exec(db, SQL, 0, 0, &err))
@@ -91,7 +188,7 @@ void sqlShow()
                 std::cout << "  SQL error: " << err << std::endl;
                 sqlite3_free(err);
             }
-            
+
             SQL_string = "UPDATE signatures SET bytes4to7='";
             test = signature_arr[sql_counter].get_eight_bytes();
             temporary_data = std::to_string(test);
@@ -106,8 +203,8 @@ void sqlShow()
             {
                 std::cout << "  SQL error: " << err << std::endl;
                 sqlite3_free(err);
-            }         
-        }            
+            }
+        }
     }
     // closing connection
     sqlite3_close(db);
@@ -474,7 +571,7 @@ bool letsTryToFindSuperBlock(std::string fullPath, HANDLE hConsoleHandle, unsign
 
 
 int main()
-{   
+{
     HANDLE hConsoleHandle = GetStdHandle(STD_OUTPUT_HANDLE);
     std::string pathToDir = ExePath();
     SetConsoleTextAttribute(hConsoleHandle, Green | Black);
@@ -555,8 +652,10 @@ int main()
             std::cin >> fileName;
             fullPath = longLifebackSlashString + longLifebackSlashString + "." + longLifebackSlashString + pathToDir + longLifebackSlashString + fileName;
         }
-    }
+    }    
+    addingUserSign();
     sqlShow();
+
     unsigned int BlockSize = 0;
     unsigned int GroupSize = 0;
     unsigned long long sblockOffsetDec = 0;
@@ -577,9 +676,9 @@ int main()
             SetConsoleTextAttribute(hConsoleHandle, White | Black);
         }
         else
-        {
+        {           
             block_map->info();
-            block_map->setRecoveryConfiguration();
+            block_map->setRecoveryConfiguration();            
             block_map->blockMapRead(sblockOffsetDec, fullPath);
             block_map->searchingSignaturesShow();
             block_map->searchigFiles(sblockOffsetDec, fullPath);
