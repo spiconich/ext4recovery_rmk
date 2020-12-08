@@ -1,6 +1,5 @@
 #pragma pack(push,1)
 #include <Windows.h>
-
 struct superblock_offests
 {
     BYTE nInodeinSystem[4];//0-3

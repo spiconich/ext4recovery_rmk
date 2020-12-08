@@ -59,3 +59,6 @@ ext4recovery_rmk/Debug/Sqliteman-1.2.2/README
 *.dblite
 *.sql
 ext4recovery_rmk/Debug/Sqliteman-1.2.2/1
+*.7z
+*.fb2
+*.mp4
