@@ -223,8 +223,8 @@ class BlockMap : public SearchType
                // std::cout << "PosBeforeRead:" << currentPosition << std::endl;
                 readResult = ReadFile(fileHandleRecoveryRead, bufferForLoop, BYTESTOREADLOOP, &bytesRead, NULL);
                 currentPosition = SetFilePointer(fileHandleRecoveryRead, startPos + BLOCKSIZE - (eightBytesFromTheEndReaden * BYTESTOREADLOOP), NULL, FILE_BEGIN);
-                firstLoopByte = foursBytesToIntx(strucForLoop->hopeZeroOne);
-                secondLoopByte = foursBytesToIntx(strucForLoop->hopeZeroTwo);
+                firstLoopByte = translator->foursBytesToIntx(strucForLoop->hopeZeroOne);
+                secondLoopByte = translator->foursBytesToIntx(strucForLoop->hopeZeroTwo);
                // std::cout << "f: " << firstLoopByte << ", s:" << secondLoopByte << std::endl;
                 if ((firstLoopByte == 0) && (secondLoopByte) == 0)//zero found at the end last 8 bytes
                 {
@@ -393,7 +393,7 @@ class BlockMap : public SearchType
                     readResult = ReadFile(fileHandle, buffer, bytesToRead, &bytesRead, NULL);
                     if (readResult && bytesRead == bytesToRead)
                     {
-                        blocksaddr[obv_size] = eithtBytesToULONGLONG(map->GroupBlock, map->GroupBlockHigh);//zapolnyaem massiv s nomerami blokov dlya vosstanovleniya
+                        blocksaddr[obv_size] = translator->eithtBytesToULONGLONG(map->GroupBlock, map->GroupBlockHigh);//zapolnyaem massiv s nomerami blokov dlya vosstanovleniya
                         //std::cout << "group num: " << obv_size << " " << blocksaddr[obv_size] << std::endl;
                         obv_size++;
                     }
@@ -467,9 +467,9 @@ class BlockMap : public SearchType
                 bool readResult = ReadFile(fileHandle, buffer, bytesToRead, &bytesRead, NULL);
                 if (readResult && bytesRead == bytesToRead)
                 {   //--------------------------------------------------       
-                    first_bytes_rez = foursBytesToIntx(map->first_bytes);
-                    second_bytes_rez = foursBytesToIntx(map->second_bytes);
-                    third_bytes_rez = foursBytesToIntx(map->third_bytes);
+                    first_bytes_rez = translator->foursBytesToIntx(map->first_bytes);
+                    second_bytes_rez = translator->foursBytesToIntx(map->second_bytes);
+                    third_bytes_rez = translator->foursBytesToIntx(map->third_bytes);
                     std::string fileExtension = desicionWhatExtensionToCreate(first_bytes_rez, second_bytes_rez, third_bytes_rez,0);
                     if (fileExtension.length() != NULL)
                     {
