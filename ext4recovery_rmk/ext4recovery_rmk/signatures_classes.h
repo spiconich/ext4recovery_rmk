@@ -14,7 +14,7 @@ struct twelve_bits
 	BYTE third_bytes[4];//0-3
 };
 
-const size_t signatures_count = 31;
+const size_t signatures_count = 46;
 
 
 class Signature {
@@ -65,32 +65,47 @@ bool g_user_restore_required = false;
 std::string g_user_file_format = "NOT ENABLED";
 
 Signature signature_arr[signatures_count] = {
-Signature(2,67324752,0,134742036,0,"docx",true), //1
-Signature(1,3774863615,0,0,0,"jpg",true), //2
+Signature(2,3791640831,0,2017831719,0,"png",true), //10
+Signature(2,912808514,0,912808514,0,"tar.bz2",true), //1 643383601
+Signature(2,912808514,0,643383601,0,"tar.bz2",true),
+Signature(1,559903,0,0,0,"gz",false), //14
+Signature(2,3689851885,0,3,0,"rpm",true), //1
+Signature(2,963140162,0,643383601,0,"bz2",true), //1
+Signature(3,67324752,0,134217748,2376728576,"odp",true), //1
+Signature(3,67324752,0,134217748,2374828032,"odp",true),
+Signature(3,67324752,0,134217748,1999372288,"odp",true),//1 
+Signature(3,67324752,0,134217748,2953445376,"odt",true), //1
+Signature(3,67324752,0,134217748,2953379840,"odt",true),
+Signature(2,67324752,0,393236,0,"docx",true),
+Signature(2,67324752,0,134742036,0,"docx",true), //1 393236
+Signature(1,3791640831,0,0,0,"jpg",true), //2
+Signature(1,3774863615,0,0,0,"jpg",true), //2 
+Signature(1,3774863615,0,0,0,"jpeg",true), //2
 Signature(1,1178882085,0,0,0,"pdf",true), //3
-Signature(1,2948364855,0,0,0,"7z",true), //4
+Signature(1,2948364855,0,0,0,"7z",true), //4      %%%% оепереяр
 Signature(3,1766609235,0,1713399156,1634562671,"dblite",true), //5
 Signature(1,4262637007,0,0,0,"dbx",true), //6
 Signature(2,3759263696,0,3776623009,0,"doc",true), //7
-Signature(1,34498581873,0,0,0,"iso",true), //8
+Signature(1,34498581873,0,0,0,"iso",true), //8     %%%% рпщь
 Signature(1,1129333590,0,0,0,"pch",true), //9
 Signature(2,1196314761,0,169478669,0,"png",true), //10
 Signature(2,3759263696,0,3776623009,0,"ppt",true), //11
-Signature(1,21726152,0,0,0,"rar",true), //12
+Signature(1,561144146,0,0,0,"rar",true), //12       % оепереяр
 Signature(1,1953651835,0,0,0,"rtf",true), //13
 Signature(1,1147694772,0,0,0,"tib",true), //14
 Signature(1,1480934229,0,0,0,"uce",true), //15
 Signature(1,1448299867,0,0,0,"vcw",true), //16
-Signature(1,1179011410,0,0,0,"wav",true), //17
+Signature(1,1179011410,0,0,0,"avi",true), //17
 Signature(2,3759263696,0,3776623009,0,"xls",true), //18
 Signature(1,1684558925,0,0,0,"midi",true), //19
 Signature(2,2749318426,0,2290238099,0,"mkv",true), //20
-Signature(1,1179011410,0,0,0,"avi",true), //21
+Signature(2,2749318426,0,2173059747,0,"mkv",true),
+Signature(1,1179011410,0,0,0,"wav",true), //21
 Signature(2,1974609456,0,298804878,0,"wmv",true), //22
 Signature(3,256,0,1851880531,1685217636,"accdb",true), //23
 Signature(1,1179011410,0,0,0,"cdr",true), //24
 Signature(2,3759263696,0,3776623009,0,"pub",true), //25
-Signature(3,1631205476,0,1970237038,845505390,"torrent",true), //26
+Signature(2,1631205476,0,1970237038,0,"torrent",true), //26
 Signature(2,1411798081,0,1297239878,0,"djvu",true), //27
 Signature(3,1836597052,0,1702240364,1869181810,"fb2",true), //28
 Signature(1,168627466,0,0,0,"pcapng",true), //29
